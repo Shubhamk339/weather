@@ -1,0 +1,60 @@
+import requests
+import tkinter as tk
+from tkinter import messagebox
+
+class WeatherApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Weather App")
+        self.root.geometry("400x400")
+
+        self.api_key = "92c39554ea15a252608ec7184da06310"
+        self.base_url = "http://api.openweathermap.org/data/2.5/weather"
+
+        self.location_label = tk.Label(root, text="Enter Location:")
+        self.location_entry = tk.Entry(root)
+        self.get_weather_button = tk.Button(root, text="Get Weather", command=self.get_weather)
+        self.weather_label = tk.Label(root, text="")
+
+        self.location_label.pack(pady=10)
+        self.location_entry.pack(pady=10)
+        self.get_weather_button.pack(pady=10)
+        self.weather_label.pack(pady=20)
+
+    def get_weather(self):
+        location = self.location_entry.get()
+        if not location:
+            messagebox.showerror("Error", "Please enter a location")
+            return
+
+        try:
+            weather_data = self.fetch_weather_data(location)
+            self.display_weather(weather_data)
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    def fetch_weather_data(self, location):
+        params = {
+            'q': location,
+            'appid': self.api_key,
+            'units': 'metric',  # You can change this to 'imperial' for Fahrenheit
+        }
+
+        response = requests.get(self.base_url, params=params)
+        response.raise_for_status()
+
+        weather_data = response.json()
+        return weather_data
+
+    def display_weather(self, weather_data):
+        temperature = weather_data['main']['temp']
+        description = weather_data['weather'][0]['description']
+        wind_speed = weather_data['wind']['speed']
+
+        weather_str = f"Temperature: {temperature}°C\nDescription: {description}\nWind Speed: {wind_speed} m/s"
+        self.weather_label.config(text=weather_str)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = WeatherApp(root)
+    root.mainloop()
